@@ -16,9 +16,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: cd frontend
-      - run: npm install
-      - run: npm run build
+      - name: Install dependencies & build
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
 
   # === Step 2: Test frontend ===
   # test:
