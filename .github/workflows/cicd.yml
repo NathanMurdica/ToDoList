@@ -22,24 +22,26 @@ jobs:
           npm ci
           npm run build
 
-
   # === Step 2: Test frontend ===
-  # test:
-  #   runs-on: ubuntu-latest
-  #   needs: build      # <-- waits until 'build' completes
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #     - run: npm ci
-  #     - run: npm test
+  test:
+    runs-on: ubuntu-latest
+    needs: build      # <-- waits until 'build' completes
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies & run tests
+        run: |
+          cd frontend
+          npm ci
+          npm test
 
   # === Step 3: Build & push Docker ===
   docker:
     runs-on: ubuntu-latest
-    needs: build       # NOTE: replace with 'test' once test suite is made
+    needs: test
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
