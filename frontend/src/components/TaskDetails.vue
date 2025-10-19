@@ -23,7 +23,6 @@
         <option :value="Task.STATUS.TODO">To Do</option>
         <option :value="Task.STATUS.IN_PROGRESS">In Progress</option>
         <option :value="Task.STATUS.DONE">Done</option>
-        <option :value="Task.STATUS.CANCELLED">Cancelled</option>
       </select>
 
       <label>Due Date:</label>
@@ -47,16 +46,21 @@ const task = ref(null)
 const dueDateInput = ref("")
 
 onMounted(() => {
-  // Pretend we got task data from localStorage or backend
-  task.value = new Task({
-    id: route.query.id ?? null,
-    name: route.query.title ?? "Untitled Task",
-    description: "",
-    priority: Task.PRIORITY.MEDIUM,
-    status: Task.STATUS.TODO
-  })
-
-  if (task.value.dueDate) {
+  const taskIndex = route.params.id // NOTE : Using index from route params, will replace with ID once backend is implemented
+  const storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]")
+  if (storedTasks[taskIndex]) {
+    console.log("Loaded Task from storage:", storedTasks[taskIndex])
+    const t = storedTasks[taskIndex]
+    task.value = new Task({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      priority: t.priority,
+      status: t.status,
+      dueDate: t.dueDate ? new Date(t.dueDate) : null,
+      createdAt: t.createdAt ? new Date(t.createdAt) : null,
+      updatedAt: t.updatedAt ? new Date(t.updatedAt) : null
+    })
     dueDateInput.value = task.value.dueDate.toISOString().substring(0, 10)
   }
 })
