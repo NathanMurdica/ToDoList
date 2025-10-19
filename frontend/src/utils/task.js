@@ -10,7 +10,6 @@ const STATUS = Object.freeze({
     TODO: 'todo',
     IN_PROGRESS: 'in_progress',
     DONE: 'done',
-    CANCELLED: 'cancelled'
 });
 
 export default class Task {
@@ -68,12 +67,18 @@ export default class Task {
         return this.dueDate instanceof Date && this.status !== STATUS.DONE && this.dueDate < reference;
     }
 
-    isDueWithin(days = 1) {
-        if (!this.dueDate) return false;
+    isDueIn() {
+        if (!this.dueDate) return null;
         const now = new Date();
-        const deadline = new Date(now.getTime() + Math.max(0, days) * 24 * 60 * 60 * 1000);
-        return this.dueDate >= now && this.dueDate <= deadline;
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const diffDays = (this.dueDate.getTime() - now.getTime()) / msPerDay;
+        // For future dates round up (e.g. 0.1 -> 1), for past dates round down (e.g. -0.1 -> -1)
+        return diffDays > 0 ? Math.ceil(diffDays) : Math.floor(diffDays);
     }
+
+    _touch() {
+    this.updatedAt = new Date();
+}
 
     setStatus(newStatus) {
         if (!Object.values(STATUS).includes(newStatus)) throw new Error('Invalid status');

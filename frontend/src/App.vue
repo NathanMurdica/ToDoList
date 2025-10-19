@@ -1,8 +1,8 @@
 <template>
-  <div id="app">
+  <div>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
       <a class="navbar-brand" href="#"><router-link class="nav-link" to="/">ToDo List</router-link></a>
-      <list class="navbar-nav">
+      <ul class="navbar-nav">
         <li class="nav-item">
           <router-link class="nav-link" to="/">Home</router-link>
         </li>
@@ -12,7 +12,7 @@
         <li class="nav-item">
           <router-link class="nav-link" to="/add">Add Task</router-link>
         </li>
-      </list>
+      </ul>
     </nav>
 
     <router-view />

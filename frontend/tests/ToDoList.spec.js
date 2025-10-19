@@ -49,8 +49,18 @@ describe('ToDoList.vue', () => {
   it('loads test tasks when no localStorage data exists', async () => {
     const wrapper = mount(ToDoList)
     await new Promise(resolve => setTimeout(resolve)) // wait for onMounted
-    const items = wrapper.findAll('li')
+    const items = wrapper.findAll('tbody tr')
     console.log(items.length, testTasks.length)
     expect(items.length).toBe(testTasks.length)
   })
+
+  it('marks a task as completed', async () => {
+    const wrapper = mount(ToDoList)
+    await new Promise(resolve => setTimeout(resolve)) // wait for onMounted
+    const firstTask = wrapper.findAll('tbody tr').at(0)
+    const completeButton = firstTask.find('button.btn-success')
+    await completeButton.trigger('click')
+    expect(firstTask.text()).toContain('Done')
+  })
+
 })

@@ -6,6 +6,7 @@ import TaskAdd from '../components/TaskAdd.vue'
 const routes = [
   { path: '/', name: 'ToDoList', component: ToDoList },
   { path: '/details', name: TaskDetails, component: TaskDetails },
+  { path: '/details/:id', name: 'TaskDetailsWithID', component: TaskDetails, props: true},
   { path: '/add', name: TaskAdd, component: TaskAdd }
 ]
 
