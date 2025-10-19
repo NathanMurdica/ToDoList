@@ -5,8 +5,8 @@ import TaskAdd from '../components/TaskAdd.vue'
 
 const routes = [
   { path: '/', name: 'ToDoList', component: ToDoList },
-  { path: '/details', name: TaskDetails, component: TaskDetails },
-  { path: '/add', name: TaskAdd, component: TaskAdd }
+  { path: '/task-details', name: 'TaskDetails', component: TaskDetails }, 
+  { path: '/add', name: 'TaskAdd', component: TaskAdd }
 ]
 
 const router = createRouter({

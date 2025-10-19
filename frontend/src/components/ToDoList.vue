@@ -13,6 +13,7 @@
         <button class="btn btn-primary" @click="addTask">Add</button>
       </div>
 
+ HEAD
       <!-- Task List -->
       <ul class="list-group">
         <li
@@ -30,12 +31,40 @@
               {{ task.name }}
             </span>
           </div>
+
+    <!-- Task List -->
+    <ul class="list-group">
+      <li
+        v-for="(task, index) in tasks"
+        :key="index"
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <div>
+          <input
+            type="checkbox"
+            class="form-check-input me-2"
+            v-model="task.completed"
+          />
+          <span :class="{ 'text-decoration-line-through': task.completed }">
+            {{ task.text }}
+          </span>
+        </div>
+        <div>
+          <!-- View Details button -->
+          <button
+            class="btn btn-sm btn-info me-2"
+            @click="goToDetails(task)"
+          >
+            View Details
+          </button>
+               61bf395 (Update some of the TodoList.vue and create the TaskDetail.vue)
           <button
             class="btn btn-sm btn-danger"
             @click="removeTask(index)"
           >
             Delete
           </button>
+<<<<<<< HEAD
         </li>
       </ul>
 
@@ -49,13 +78,36 @@
           Clear Completed
         </button>
       </div>
+=======
+        </div>
+      </li>
+    </ul>
+
+    <!-- Clear Completed -->
+    <div class="text-center mt-4">
+      <button
+        class="btn btn-outline-secondary"
+        @click="clearCompleted"
+        :disabled="!hasCompletedTasks"
+      >
+        Clear Completed
+      </button>
+>>>>>>> 61bf395 (Update some of the TodoList.vue and create the TaskDetail.vue)
     </div>
   </template>
 
+<<<<<<< HEAD
   <script setup>
   import { ref, computed, onMounted, watch } from "vue";
   import { testTasks } from "../data/TestTasks";
 import Task from "../utils/task";
+=======
+<script setup>
+import { ref, computed, onMounted, watch } from "vue";
+import { useRouter } from "vue-router"; // import router
+
+const router = useRouter(); //set up router
+>>>>>>> 61bf395 (Update some of the TodoList.vue and create the TaskDetail.vue)
 
   const newTask = ref("");
   const tasks = ref([]);
@@ -98,10 +150,25 @@ import Task from "../utils/task";
     tasks.value.splice(index, 1);
   };
 
+<<<<<<< HEAD
   // Clear all completed tasks
   const clearCompleted = () => {
     tasks.value = tasks.value.filter((task) => !task.completed);
   };
+=======
+// go to details page with query
+const goToDetails = (task) => {
+  router.push({
+    path: "/task-details",
+    query: { title: task.text }
+  });
+};
+
+// Clear all completed tasks
+const clearCompleted = () => {
+  tasks.value = tasks.value.filter((t) => !t.completed);
+};
+>>>>>>> 61bf395 (Update some of the TodoList.vue and create the TaskDetail.vue)
 
   // Check if any tasks are completed
   const hasCompletedTasks = computed(() =>
