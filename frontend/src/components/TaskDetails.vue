@@ -106,11 +106,19 @@ const saveChanges = () => {
   const storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]")
   storedTasks[index] = task.value.toJSON()
   localStorage.setItem("tasks", JSON.stringify(storedTasks))
-    fetch("http://localhost:5173/task_list/" + index)
-      .method("DELETE");
-    fetch("http://localhost:5173/task_list")
-      .method("POST")
-      .body(JSON.stringify(storedTasks[index]));
+
+  // Delete previous server copy (if any) and re-post the updated task to backend
+  const idToDelete = tasks.value[index] && tasks.value[index].id
+  if (idToDelete !== undefined && idToDelete !== null) {
+    fetch(`http://localhost:8000/task_list/${idToDelete}`, { method: "DELETE" })
+      .catch(err => console.error('TaskDetails DELETE error', err))
+  }
+
+  fetch("http://localhost:8000/task_list", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(storedTasks[index])
+  }).catch(err => console.error('TaskDetails POST error', err))
 
   // refresh dropdown list
   tasks.value = storedTasks.map(t => Task.fromJSON(t))

@@ -40,6 +40,9 @@ class Task(BaseModel):
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "tasks.json")
 
+source_file = os.path.join(os.path.dirname(__file__), "tasks.json")
+destination_file = os.path.join(os.path.dirname(__file__), "tasks_copy.json")
+
 def save_tasks(tasks: List[Task]):
     with open(DATA_FILE, "w") as f:
         json.dump(tasks, f, indent=4)
@@ -47,22 +50,33 @@ def save_tasks(tasks: List[Task]):
 # --------- ROUTES ---------
 @app.post("/task_list", response_model=Task)
 def create_task(task: Task):
-    """Add a new task."""
     tasks = list_tasks()
-    # Ensure unique ID
-    if any(t["id"] == task.id for t in tasks):
-        raise HTTPException(status_code=400, detail="Task ID already exists")
-    tasks.append(task.dict())
+    task.id = max((t["id"] for t in tasks), default=-1) + 1
+    tasks.append(task.model_dump())
     save_tasks(tasks)
     return task
+
 
 # get full task list
 @app.get("/task_list", response_model=list[Task])
 def list_tasks():
-    if not os.path.exists(DATA_FILE):
+    try:
+        with open(DATA_FILE, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Construct the copy command based on the operating system
+        if os.name == 'posix':  # Unix-like systems (Linux, macOS)
+            command = f"cp {destination_file} {source_file}"
+        elif os.name == 'nt':  # Windows
+            command = f"copy {destination_file} {source_file}"
+        else:
+            print("Unsupported operating system for direct shell command copying.")
+            exit()
+
+        # Execute the command
+        os.system(command)
+
         return []
-    with open(DATA_FILE, "r") as f:
-        return json.load(f)
 
 # get specific task by id
 @app.get("/task_list/{task_id}", response_model=Task)

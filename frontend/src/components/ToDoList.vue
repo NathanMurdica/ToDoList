@@ -113,26 +113,43 @@
     tasks.value.push(newTaskObj);
     newTask.value = "";
     // add any backend addition logic here
-    fetch("http://localhost:5173/task_list")
-      .method("POST")
-      .body(JSON.stringify(newTaskObj.toJSON()));
+    // send payload without id so backend assigns a numeric id
+    const payload = newTaskObj.toJSON()
+    delete payload.id
+    fetch("http://localhost:8000/task_list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(err => console.error('addTask POST error', err))
   };
 
   // Remove a task
   const removeTask = (index) => {
+    // capture id before removing from the array
+    const id = tasks.value[index] && tasks.value[index].id
     tasks.value.splice(index, 1);
     // add any backend deletion logic here
-    fetch("http://localhost:5173/task_list/" + index)
-      .method("DELETE");
+    if (id !== undefined && id !== null && Number.isFinite(Number(id))) {
+      fetch(`http://localhost:8000/task_list/${Number(id)}`, {
+        method: "DELETE"
+      }).catch(err => console.error('removeTask DELETE error', err))
+    }
   };
 
   const completeTask = (index) => {
-    tasks.value[index].setStatus(Task.STATUS.DONE);
-    // add any backend update logic here
-    fetch("http://localhost:5173/task_list/" + index)
-      .method("DELETE");
-    fetch("http://localhost:5173/task_list")
-      .method("POST")
-      .body(JSON.stringify(tasks.value[index].toJSON()));
+    const t = tasks.value[index]
+    if (!t) return
+    t.setStatus(Task.STATUS.DONE);
+    // send updated task to backend then remove locally
+    const payload = t.toJSON()
+    delete payload.id
+    fetch("http://localhost:8000/task_list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(err => console.error('completeTask POST error', err))
+
+    // remove from local list after posting
+    tasks.value.splice(index, 1)
   };
   </script>

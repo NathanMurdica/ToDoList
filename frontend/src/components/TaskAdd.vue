@@ -92,9 +92,24 @@ function loadTasks() {
 
 function saveTasks() {
   localStorage.setItem("tasks", JSON.stringify(tasks.value))
-    fetch("http://localhost:5173/task_list")
-      .method("POST")
-      .body(JSON.stringify(JSON.stringify(tasks.value)));
+  // Send only the last added task to the backend
+  const lastTask = tasks.value[tasks.value.length - 1]
+  if (lastTask) {
+    const payload = {
+      name: lastTask.name,
+      description: lastTask.description,
+      priority: lastTask.priority,
+      status: lastTask.status,
+      due_date: lastTask.dueDate ? lastTask.dueDate.toISOString().split('T')[0] : '',
+      created_at: lastTask.createdAt ? lastTask.createdAt.toISOString() : new Date().toISOString(),
+      updated_at: lastTask.updatedAt ? lastTask.updatedAt.toISOString() : new Date().toISOString()
+    }
+    fetch("http://localhost:8000/task_list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(error => console.error('Error saving task to backend:', error))
+  }
 }
 
 function validate() {

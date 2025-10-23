@@ -44,9 +44,9 @@ export default class Task {
             description: this.description,
             priority: this.priority,
             status: this.status,
-            dueDate: this.dueDate ? this.dueDate.toISOString() : null,
-            createdAt: this.createdAt.toISOString(),
-            updatedAt: this.updatedAt.toISOString()
+            due_date: this.dueDate ? this.dueDate.toISOString().split('T')[0] : '',
+            created_at: this.createdAt.toISOString(),
+            updated_at: this.updatedAt.toISOString()
         };
     }
 

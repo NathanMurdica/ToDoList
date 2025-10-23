@@ -1,19 +1,31 @@
 from fastapi.testclient import TestClient
 from main import app, DATA_FILE
-import json, os, pytest
+import os, pytest
 
 client = TestClient(app)
+
+source_file = os.path.join(os.path.dirname(__file__), "tasks.json")
+destination_file = os.path.join(os.path.dirname(__file__), "tasks_copy.json")
 
 @pytest.fixture(autouse=True)
 def clean_data_file():
     """Ensure a fresh tasks.json before each test."""
     if os.path.exists(DATA_FILE):
-        # keep yourself safe
-        pass
+        # Construct the copy command based on the operating system
+        if os.name == 'posix':  # Unix-like systems (Linux, macOS)
+            command = f"cp {source_file} {destination_file}"
+        elif os.name == 'nt':  # Windows
+            command = f"copy {source_file} {destination_file}"
+        else:
+            print("Unsupported operating system for direct shell command copying.")
+            exit()
+
+        # Execute the command
+        os.system(command)
+        os.remove(DATA_FILE)
     yield
     if os.path.exists(DATA_FILE):
-        # keep yourself safe
-        pass
+        os.remove(DATA_FILE)
 
 
 def test_list_tasks_initially_empty():
@@ -37,7 +49,7 @@ def test_create_task():
     response = client.post("/task_list", json=new_task)
     assert response.status_code == 200
     data = response.json()
-    assert data["id"] == 1
+    assert data["id"] >= 0 # ID should be assigned by backend
     assert data["name"] == "Test Task"
 
 
@@ -46,13 +58,21 @@ def test_get_task_by_id():
     client.post("/task_list", json={
         "id": 5,
         "name": "Fetch Me",
+        "description": "To fetch or not to fetch, that is the question",
         "priority": "high",
-        "status": "todo"
+        "status": "todo",
+        "due_date": "2025-10-23",
+        "created_at": "2025-10-23T10:00:00",
+        "updated_at": "2025-10-23T10:00:00"
     })
-    response = client.get("/task_list/5")
+    # Get the task ID from the previous response
+    task_list = client.get("/task_list").json()
+    task_id = next((t["id"] for t in task_list if t.get("name") == "Fetch Me"), None)
+    assert task_id is not None, "Task 'Fetch Me' not found in task list"
+    response = client.get(f"/task_list/{task_id}")
     assert response.status_code == 200
     data = response.json()
-    assert data["id"] == 5
+    assert data["id"] == task_id
     assert data["name"] == "Fetch Me"
 
 
@@ -70,10 +90,15 @@ def test_delete_task():
         "priority": "low",
         "status": "todo"
     })
-    response = client.delete("/task_list/2")
+    # Get the task ID from the previous response
+    task_list = client.get("/task_list").json()
+    # Find task with name "Delete Me"
+    task_id = next((t["id"] for t in task_list if t.get("name") == "Delete Me"), None)
+    assert task_id is not None, "Task 'Delete Me' not found in task list"
+    response = client.delete(f"/task_list/{task_id}")
     assert response.status_code == 200
-    assert response.json()["id"] == 2
+    assert response.json()["id"] == task_id
 
     # Verify it's gone
-    response = client.get("/task_list/2")
+    response = client.get(f"/task_list/{task_id}")
     assert response.status_code == 404
