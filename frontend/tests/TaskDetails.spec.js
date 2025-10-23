@@ -87,7 +87,7 @@ describe("TaskDetails.vue", () => {
     const wrapper = mount(TaskDetails)
 
     // manually inject a task with no due date
-    wrapper.vm.task = { id: 100, name: "No Date", description: "Test", priority: "low", status: "todo", dueDate: null }
+    wrapper.vm.task = { id: 100, name: "No Date", description: "Test", priority: "low", status: "todo", due_date: null }
     await wrapper.vm.$nextTick()
 
     const dateInput = wrapper.find('input[type="date"]')

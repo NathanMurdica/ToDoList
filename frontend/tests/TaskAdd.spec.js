@@ -51,7 +51,7 @@ describe("TaskAdd.vue", () => {
     await wrapper.find("#name").setValue("Buy milk")
     await wrapper.find("#priority").setValue("medium")
     await wrapper.find("#status").setValue("in_progress")
-    await wrapper.find("#dueDate").setValue("")
+    await wrapper.find("#due_date").setValue("")
 
     await wrapper.find("form").trigger("submit.prevent")
 
@@ -61,7 +61,7 @@ describe("TaskAdd.vue", () => {
         description: "",
         priority: "medium",
         status: "in_progress",
-        dueDate: null
+        due_date: null
       })
     )
 

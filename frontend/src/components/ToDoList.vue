@@ -26,9 +26,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(task, index) in tasks" :key="index">
+        <tr v-for="task in tasks" :key="task.id">
           <td>{{ task.name }}</td>
-          <td>{{ formatDate(task.dueDate) }}</td>
+          <td>{{ task.due_date }}</td>
           <td>
             <span v-if="task.isOverdue()" class="text-danger">Overdue</span>
             <span v-else>{{ task.isDueIn() || "--"}} Days</span>
@@ -40,13 +40,13 @@
           </td>
           <td>{{ taskStatus(task.status) }}</td>
           <td>
-            <button class="btn btn-sm btn-primary me-2" @click="$router.push(`/details/${index}`)">
+            <button class="btn btn-sm btn-primary me-2" @click="$router.push(`/details/${task.id}`)">
               Details
             </button>
-            <button class="btn btn-sm btn-success me-2" @click="completeTask(index)">
+            <button class="btn btn-sm btn-success me-2" @click="completeTask(task.id)">
               Complete
             </button>
-            <button class="btn btn-sm btn-danger" @click="removeTask(index)">
+            <button class="btn btn-sm btn-danger" @click="removeTask(task.id)">
               Delete
             </button>
           </td>
@@ -58,34 +58,21 @@
   
   <script setup>
   import { ref, onMounted, watch } from "vue";
-  import { testTasks } from "../data/TestTasks";
   import Task from "../utils/task";
   import formatDate from "../utils/format";
+  import { onBeforeRouteUpdate } from 'vue-router';
 
   const newTask = ref("");
   const tasks = ref([]);
-  
-  // -------------------------
-  // NOTE: this section will be modified to support backend integration, 
-  // number of tasks from the backend could be compared to the number in localStorage 
-  // to decide whether to load from localStorage or backend
-  // -------------------------
 
   // Load tasks from localStorage or test data on mount
   onMounted(() => {
-    const saved = localStorage.getItem("tasks");
-    if (saved && JSON.parse(saved).length > 0) {
-      tasks.value = JSON.parse(saved).map(task => Task.fromJSON(task));
-    } else {
-      tasks.value = testTasks.map(task => new Task(task));
-      localStorage.setItem("tasks", JSON.stringify(tasks.value.map(t => t.toJSON())));
-    }
+    getTasks();
   });
 
-  // Watch for changes and save to localStorage
-  watch(tasks, (val) => {
-    localStorage.setItem("tasks", JSON.stringify(val.map(t => t.toJSON())));
-  }, { deep: true });
+  onBeforeRouteUpdate((to, from) => {
+    getTasks();
+  });
 
   function priorityClass(priority) {
       switch (priority.toLowerCase()) {
@@ -105,14 +92,25 @@
       }
   };
 
+  // get tasks
+  const getTasks = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/task_list");
+      const data = await response.json();
+      tasks.value =data.map(task => Task.fromJSON(task));
+      localStorage.setItem("tasks", JSON.stringify(tasks.value.map(t => t.toJSON())));
+    } catch (error) {
+      console.error('getTasks error', error);
+    }
+  };
+
   // Add a new task
-  const addTask = () => {
+  const addTask = async () => {
     const name = newTask.value.trim();
     if (!name) return;
     const newTaskObj = new Task({ name });
     tasks.value.push(newTaskObj);
-    newTask.value = "";
-    // add any backend addition logic here
+    
     // send payload without id so backend assigns a numeric id
     const payload = newTaskObj.toJSON()
     delete payload.id
@@ -121,25 +119,38 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     }).catch(err => console.error('addTask POST error', err))
+
+    newTask.value = "";
+    await getTasks();
   };
 
   // Remove a task
-  const removeTask = (index) => {
-    // capture id before removing from the array
-    const id = tasks.value[index] && tasks.value[index].id
-    tasks.value.splice(index, 1);
-    // add any backend deletion logic here
-    if (id !== undefined && id !== null && Number.isFinite(Number(id))) {
-      fetch(`http://localhost:8000/task_list/${Number(id)}`, {
-        method: "DELETE"
-      }).catch(err => console.error('removeTask DELETE error', err))
-    }
-  };
+  const removeTask = async (task_id) => {
+  try {
+    // Remove locally
+    tasks.value = tasks.value.filter(t => t.id !== task_id);
 
-  const completeTask = (index) => {
-    const t = tasks.value[index]
+    // Remove from backend
+    await fetch(`http://localhost:8000/task_list/${task_id}`, {
+      method: "DELETE"
+    });
+
+    await getTasks();
+  } catch (err) {
+    console.error('removeTask DELETE error', err);
+  }
+};
+
+
+  const completeTask = (task_id) => {
+    const t = tasks.value[task_id]
     if (!t) return
     t.setStatus(Task.STATUS.DONE);
+
+    // remove task from backend before adding updated version
+    removeTask(t.id);
+    console.log('completeTask', t, task_id)
+
     // send updated task to backend then remove locally
     const payload = t.toJSON()
     delete payload.id
@@ -150,6 +161,8 @@
     }).catch(err => console.error('completeTask POST error', err))
 
     // remove from local list after posting
-    tasks.value.splice(index, 1)
+    tasks.value.splice(task_id, 1)
+
+    //getTasks(); // refresh tasks to get assigned id from backend
   };
   </script>

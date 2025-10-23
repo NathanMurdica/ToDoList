@@ -1,44 +1,32 @@
 [
     {
         "id": 0,
-        "name": "Updated Task",
-        "description": "Hello",
-        "priority": "low",
-        "status": "todo",
+        "name": "Buy milk",
+        "description": "",
+        "priority": "medium",
+        "status": "in_progress",
         "due_date": "",
-        "created_at": "2025-10-23T12:47:08.798Z",
-        "updated_at": "2025-10-23T12:47:08.803Z"
-    },
-    {
-        "id": 1,
-        "name": "Task 1",
-        "description": "Description for Task 1",
-        "priority": "high",
-        "status": "done",
-        "due_date": "2025-10-25",
-        "created_at": "2025-10-23T12:47:08.776Z",
-        "updated_at": "2025-10-23T12:47:08.832Z"
+        "created_at": "2025-10-23T14:25:03.372Z",
+        "updated_at": "2025-10-23T14:25:03.372Z"
     },
     {
         "id": 2,
+        "name": "Buy milk",
+        "description": "",
+        "priority": "medium",
+        "status": "in_progress",
+        "due_date": "",
+        "created_at": "2025-10-23T14:25:29.438Z",
+        "updated_at": "2025-10-23T14:25:29.439Z"
+    },
+    {
+        "id": 3,
         "name": "Updated Task",
         "description": "Hello",
         "priority": "low",
         "status": "todo",
         "due_date": "",
-        "created_at": "2025-10-23T12:50:32.457Z",
-        "updated_at": "2025-10-23T12:50:32.461Z"
-    },
-    {
-        "id": 3,
-        "name": "New Task",
-        "description": "",
-        "priority": "medium",
-        "status": "todo",
-        "due_date": "",
-        "created_at": "2025-10-23T12:50:32.465Z",
-        "updated_at": "2025-10-23T12:50:32.465Z"
-    }
-]-23T12:50:32.485Z"
+        "created_at": "2025-10-23T14:25:38.141Z",
+        "updated_at": "2025-10-23T14:25:38.145Z"
     }
 ]

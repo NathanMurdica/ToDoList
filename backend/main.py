@@ -18,16 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# class Priority(Enum):
-#     LOW = 'low'
-#     MEDIUM = 'medium'
-#     HIGH = 'high'
-
-# class Status(Enum):
-#     TODO = 'todo'
-#     IN_PROGRESS = 'in_progress'
-#     DONE = 'done'
-
 class Task(BaseModel):
     id: int = None
     name: str = ''
@@ -62,7 +52,8 @@ def create_task(task: Task):
 def list_tasks():
     try:
         with open(DATA_FILE, "r") as f:
-            return json.load(f)
+            try: return json.load(f)
+            except json.JSONDecodeError: return []
     except FileNotFoundError:
         # Construct the copy command based on the operating system
         if os.name == 'posix':  # Unix-like systems (Linux, macOS)

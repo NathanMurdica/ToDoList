@@ -19,7 +19,7 @@ export default class Task {
         description = '',
         priority = PRIORITY.MEDIUM,
         status = STATUS.TODO,
-        dueDate = null,
+        due_date = null,
         createdAt = null,
         updatedAt = null
     } = {}) {
@@ -28,7 +28,7 @@ export default class Task {
         this.description = String(description);
         this.priority = Object.values(PRIORITY).includes(priority) ? priority : PRIORITY.MEDIUM;
         this.status = Object.values(STATUS).includes(status) ? status : STATUS.TODO;
-        this.dueDate = dueDate ? new Date(dueDate) : null;
+        this.due_date = due_date ? new Date(due_date) : null;
         this.createdAt = createdAt ? new Date(createdAt) : new Date();
         this.updatedAt = updatedAt ? new Date(updatedAt) : new Date();
     }
@@ -44,7 +44,7 @@ export default class Task {
             description: this.description,
             priority: this.priority,
             status: this.status,
-            due_date: this.dueDate ? this.dueDate.toISOString().split('T')[0] : '',
+            due_date: this.due_date ? this.due_date.toISOString().split('T')[0] : '',
             created_at: this.createdAt.toISOString(),
             updated_at: this.updatedAt.toISOString()
         };
@@ -57,21 +57,21 @@ export default class Task {
             description: obj.description ?? '',
             priority: obj.priority ?? PRIORITY.MEDIUM,
             status: obj.status ?? STATUS.TODO,
-            dueDate: obj.dueDate ?? null,
+            due_date: obj.due_date ?? null,
             createdAt: obj.createdAt ?? null,
             updatedAt: obj.updatedAt ?? null
         });
     }
 
     isOverdue(reference = new Date()) {
-        return this.dueDate instanceof Date && this.status !== STATUS.DONE && this.dueDate < reference;
+        return this.due_date instanceof Date && this.status !== STATUS.DONE && this.due_date < reference;
     }
 
     isDueIn() {
-        if (!this.dueDate) return null;
+        if (!this.due_date) return null;
         const now = new Date();
         const msPerDay = 24 * 60 * 60 * 1000;
-        const diffDays = (this.dueDate.getTime() - now.getTime()) / msPerDay;
+        const diffDays = (this.due_date.getTime() - now.getTime()) / msPerDay;
         // For future dates round up (e.g. 0.1 -> 1), for past dates round down (e.g. -0.1 -> -1)
         return diffDays > 0 ? Math.ceil(diffDays) : Math.floor(diffDays);
     }
@@ -95,7 +95,7 @@ export default class Task {
     update(fields = {}) {
         if (fields.name !== undefined) this.name = String(fields.name);
         if (fields.description !== undefined) this.description = String(fields.description);
-        if (fields.dueDate !== undefined) this.dueDate = fields.dueDate ? new Date(fields.dueDate) : null;
+        if (fields.due_date !== undefined) this.due_date = fields.due_date ? new Date(fields.due_date) : null;
         if (fields.priority !== undefined) this.setPriority(fields.priority);
         if (fields.status !== undefined) this.setStatus(fields.status);
         this._touch();

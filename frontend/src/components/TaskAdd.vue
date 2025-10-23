@@ -50,8 +50,8 @@
         </div>
 
         <div class="form-row mb-4">
-          <label for="dueDate" class="form-label">Due date</label>
-          <input id="dueDate" v-model="form.dueDate" type="date" class="form-control" />
+          <label for="due_date" class="form-label">Due date</label>
+          <input id="due_date" v-model="form.due_date" type="date" class="form-control" />
         </div>
 
         <div class="d-flex justify-content-between">
@@ -76,7 +76,7 @@ const form = ref({
   description: "",
   priority: "",
   status: "",
-  dueDate: ""
+  due_date: ""
 })
 const errors = ref({ name: "", priority: "", status: "" })
 
@@ -100,7 +100,7 @@ function saveTasks() {
       description: lastTask.description,
       priority: lastTask.priority,
       status: lastTask.status,
-      due_date: lastTask.dueDate ? lastTask.dueDate.toISOString().split('T')[0] : '',
+      due_date: lastTask.due_date ? lastTask.due_date.toISOString().split('T')[0] : '',
       created_at: lastTask.createdAt instanceof Date ? lastTask.createdAt.toISOString() : new Date().toISOString(),
       updated_at: lastTask.updatedAt instanceof Date ? lastTask.updatedAt.toISOString() : new Date().toISOString()
     }
@@ -142,14 +142,14 @@ function onSubmit() {
     description: form.value.description.trim() || "",
     priority: form.value.priority,
     status: form.value.status,
-    dueDate: normalizeDate(form.value.dueDate)
+    due_date: normalizeDate(form.value.due_date)
   }
 
   const newTask = new Task(payload)
   tasks.value.push(newTask)
   saveTasks()
 
-  form.value = { name: "", description: "", priority: "", status: "", dueDate: "" }
+  form.value = { name: "", description: "", priority: "", status: "", due_date: "" }
   router.push("/")
 }
 

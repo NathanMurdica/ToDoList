@@ -3,12 +3,12 @@
     <h2>Task Details</h2>
 
     <!-- Dropdown to choose a task when no ID is provided in the route -->
-    <div v-if="!route.params.id && !task">
+    <div v-if="!route.params.id">
       <label>Select a Task:</label>
       <select v-model="selectedIndex" class="form-select mb-3" @change="onTaskSelect">
         <option disabled value="">-- Choose a task --</option>
-        <option v-for="(t, idx) in tasks" :key="idx" :value="idx">
-          {{ t.name || `Task ${idx + 1}` }}
+        <option v-for="(t, idx) in tasks" :key="t.id" :value="t.id">
+          {{ t.name || `Task ${t.id}` }}
         </option>
       </select>
     </div>
@@ -85,8 +85,8 @@ const loadTask = (index) => {
   if (tasks.value[index]) {
     task.value = Task.fromJSON(tasks.value[index])
     selectedIndex.value = index
-    dueDateInput.value = task.value.dueDate
-      ? new Date(task.value.dueDate).toISOString().substring(0, 10)
+    dueDateInput.value = task.value.due_ate
+      ? new Date(task.value.due_date).toISOString().substring(0, 10)
       : ""
   }
 }
@@ -94,7 +94,7 @@ const loadTask = (index) => {
 const saveChanges = () => {
   if (!task.value) return
 
-  task.value.dueDate = dueDateInput.value ? new Date(dueDateInput.value) : null
+  task.value.due_date = dueDateInput.value ? new Date(dueDateInput.value) : null
   task.value.updatedAt = new Date()
 
   //Making sure index is correct (string → number)
