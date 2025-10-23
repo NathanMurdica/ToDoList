@@ -32,7 +32,7 @@ task_list: list[Task] = []
 def update_db():
     # Convert task_list into a json stream and overwrite the file
     json_str = json.dumps(task_list, indent=4)
-    with open("../database/products.json", "w") as db:
+    with open("../database/tasks.json", "w") as db:
         db.write(json_str)
 
 
@@ -47,7 +47,7 @@ def create_task(task: str):
 @app.get("/task_list", response_model=list[Task])
 def list_tasks(limit: int = 63):
     if len(task_list) == 0:
-        with open("../database/products.json", "r") as db:
+        with open("../database/tasks.json", "r") as db:
             task_list = json.load(db)
 
     return task_list[0:limit]
