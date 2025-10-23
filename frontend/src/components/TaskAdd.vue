@@ -101,8 +101,8 @@ function saveTasks() {
       priority: lastTask.priority,
       status: lastTask.status,
       due_date: lastTask.dueDate ? lastTask.dueDate.toISOString().split('T')[0] : '',
-      created_at: lastTask.createdAt ? lastTask.createdAt.toISOString() : new Date().toISOString(),
-      updated_at: lastTask.updatedAt ? lastTask.updatedAt.toISOString() : new Date().toISOString()
+      created_at: lastTask.createdAt instanceof Date ? lastTask.createdAt.toISOString() : new Date().toISOString(),
+      updated_at: lastTask.updatedAt instanceof Date ? lastTask.updatedAt.toISOString() : new Date().toISOString()
     }
     fetch("http://localhost:8000/task_list", {
       method: "POST",
