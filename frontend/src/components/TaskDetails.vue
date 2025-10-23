@@ -106,6 +106,11 @@ const saveChanges = () => {
   const storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]")
   storedTasks[index] = task.value.toJSON()
   localStorage.setItem("tasks", JSON.stringify(storedTasks))
+    fetch("http://localhost:5173/task_list/" + index)
+      .method("DELETE");
+    fetch("http://localhost:5173/task_list")
+      .method("POST")
+      .body(JSON.stringify(storedTasks[index]));
 
   // refresh dropdown list
   tasks.value = storedTasks.map(t => Task.fromJSON(t))

@@ -113,16 +113,26 @@
     tasks.value.push(newTaskObj);
     newTask.value = "";
     // add any backend addition logic here
-  };
-
-  const completeTask = (index) => {
-    tasks.value[index].setStatus(Task.STATUS.DONE);
-    // add any backend update logic here
+    fetch("http://localhost:5173/task_list")
+      .method("POST")
+      .body(JSON.stringify(newTaskObj.toJSON()));
   };
 
   // Remove a task
   const removeTask = (index) => {
     tasks.value.splice(index, 1);
     // add any backend deletion logic here
+    fetch("http://localhost:5173/task_list/" + index)
+      .method("DELETE");
+  };
+
+  const completeTask = (index) => {
+    tasks.value[index].setStatus(Task.STATUS.DONE);
+    // add any backend update logic here
+    fetch("http://localhost:5173/task_list/" + index)
+      .method("DELETE");
+    fetch("http://localhost:5173/task_list")
+      .method("POST")
+      .body(JSON.stringify(tasks.value[index].toJSON()));
   };
   </script>

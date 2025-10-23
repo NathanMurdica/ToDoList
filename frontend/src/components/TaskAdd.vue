@@ -92,6 +92,9 @@ function loadTasks() {
 
 function saveTasks() {
   localStorage.setItem("tasks", JSON.stringify(tasks.value))
+    fetch("http://localhost:5173/task_list")
+      .method("POST")
+      .body(JSON.stringify(JSON.stringify(tasks.value)));
 }
 
 function validate() {
