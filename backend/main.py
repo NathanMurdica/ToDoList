@@ -19,11 +19,11 @@ class Todo(BaseModel):
     id: int = None
     name: str = ''
     description: str = ''
-    priority = Priority.MEDIUM
-    status = Status.TODO
-    due_date = None
-    created_at = None
-    updated_at = None
+    priority: Priority = Priority.MEDIUM
+    status: Status = Status.TODO
+    due_date: str = None
+    created_at: str = None
+    updated_at: str = None
 
 
 todo_list: Todo = []
@@ -40,6 +40,7 @@ def update_db():
 def create_todo(todo: str):
     todo_list.append(todo)
     update_db()
+
     return todo
 
 
