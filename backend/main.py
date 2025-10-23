@@ -15,7 +15,7 @@ class Status(Enum):
     IN_PROGRESS = 'in_progress'
     DONE = 'done'
 
-class Todo(BaseModel):
+class Task(BaseModel):
     id: int = None
     name: str = ''
     description: str = ''
@@ -26,36 +26,43 @@ class Todo(BaseModel):
     updated_at: str = None
 
 
-todo_list: Todo = []
+task_list: list[Task] = []
 
 
 def update_db():
-    # Convert todo_list into a json stream and overwrite the file
-    json_str = json.dumps(todo_list, indent=4)
+    # Convert task_list into a json stream and overwrite the file
+    json_str = json.dumps(task_list, indent=4)
     with open("../database/products.json", "w") as db:
         db.write(json_str)
 
 
-@app.post("/todo_list/")
-def create_todo(todo: str):
-    todo_list.append(todo)
+@app.post("/task_list", response_model=Task)
+def create_task(task: str):
+    task_list.append(task)
     update_db()
 
-    return todo
+    return task
 
 
-@app.get("/todo_list", response_model=list[Todo])
-def list_todos(limit: int = 63):
-    if len(todo_list) == 0:
+@app.get("/task_list", response_model=list[Task])
+def list_tasks(limit: int = 63):
+    if len(task_list) == 0:
         with open("../database/products.json", "r") as db:
-            todo_list = json.load(db)
+            task_list = json.load(db)
 
-    return todo_list[0:limit]
+    return task_list[0:limit]
 
 
-@app.get("/todo_list/{todo_id}", response_model=Todo)
-def get_todo(todo_id: int) -> Todo:
-    if todo_id < len(todo_list):
-        return todo_list[todo_id]
+@app.get("/task_list/{task_id}", response_model=Task)
+def get_task(task_id: int) -> Task:
+    if task_id < len(task_list):
+        return task_list[task_id]
     else:
-        raise HTTPException(status_code=404, detail=f"Todo item {todo_id} not found")
+        raise HTTPException(status_code=404, detail=f"Task item {task_id} not found")
+
+
+@app.delete("/task_list/{task_id}", response_model=Task)
+def delete_task(task_id: int):
+    if task_id < len(task_list):
+        task_list.remove(get_task(task_id=task_id))
+        update_db()
