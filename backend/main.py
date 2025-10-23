@@ -1,13 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from enum import Enum
 from typing import List
 import json, os
-
+from threading import Lock
 
 # Run with: uvicorn backend.main:app --reload
 app = FastAPI()
+file_lock = Lock()
 
 # Allow CORS from frontend
 app.add_middleware(
@@ -18,8 +18,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ===== Models =====
 class Task(BaseModel):
-    id: int = None
+    id: int | None = None
     name: str = ''
     description: str = ''
     priority: str = ''
@@ -28,64 +29,60 @@ class Task(BaseModel):
     created_at: str = ''
     updated_at: str = ''
 
+# ===== File setup =====
 DATA_FILE = os.path.join(os.path.dirname(__file__), "tasks.json")
+BACKUP_FILE = os.path.join(os.path.dirname(__file__), "tasks_copy.json")
 
-source_file = os.path.join(os.path.dirname(__file__), "tasks.json")
-destination_file = os.path.join(os.path.dirname(__file__), "tasks_copy.json")
+# ===== Helper functions =====
+def read_tasks() -> List[dict]:
+    """Read tasks safely from JSON file."""
+    with file_lock:
+        if not os.path.exists(DATA_FILE):
+            # if missing, restore from backup if available
+            if os.path.exists(BACKUP_FILE):
+                os.system(f"cp {BACKUP_FILE} {DATA_FILE}" if os.name != "nt" else f"copy {BACKUP_FILE} {DATA_FILE}")
+            else:
+                return []
+        try:
+            with open(DATA_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return []
 
-def save_tasks(tasks: List[Task]):
-    with open(DATA_FILE, "w") as f:
-        json.dump(tasks, f, indent=4)
+def save_tasks(tasks: List[dict]):
+    """Write tasks safely to file."""
+    with file_lock:
+        with open(DATA_FILE, "w") as f:
+            json.dump(tasks, f, indent=4)
 
-# --------- ROUTES ---------
+# ===== Routes =====
+@app.get("/task_list", response_model=List[Task])
+def list_tasks():
+    """Return all tasks."""
+    return read_tasks()
+
 @app.post("/task_list", response_model=Task)
 def create_task(task: Task):
-    tasks = list_tasks()
+    """Add a new task."""
+    tasks = read_tasks()
     task.id = max((t["id"] for t in tasks), default=-1) + 1
     tasks.append(task.model_dump())
     save_tasks(tasks)
     return task
 
-
-# get full task list
-@app.get("/task_list", response_model=list[Task])
-def list_tasks():
-    try:
-        with open(DATA_FILE, "r") as f:
-            try: return json.load(f)
-            except json.JSONDecodeError: return []
-    except FileNotFoundError:
-        # Construct the copy command based on the operating system
-        if os.name == 'posix':  # Unix-like systems (Linux, macOS)
-            command = f"cp {destination_file} {source_file}"
-        elif os.name == 'nt':  # Windows
-            command = f"copy {destination_file} {source_file}"
-        else:
-            print("Unsupported operating system for direct shell command copying.")
-            exit()
-
-        # Execute the command
-        os.system(command)
-
-        return []
-
-# get specific task by id
 @app.get("/task_list/{task_id}", response_model=Task)
 def get_task(task_id: int):
     """Return a specific task by ID."""
-    tasks = list_tasks()
-    if (len(tasks) > 0):
-        for t in tasks:
-            if t["id"] == task_id:
-                return t
-        raise HTTPException(status_code=404, detail="Task not found")
-    else:
-        raise HTTPException(status_code=404, detail="No tasks found")
+    tasks = read_tasks()
+    for t in tasks:
+        if t["id"] == task_id:
+            return t
+    raise HTTPException(status_code=404, detail="Task not found")
 
 @app.delete("/task_list/{task_id}", response_model=Task)
 def delete_task(task_id: int):
-    """Delete a task by ID."""
-    tasks = list_tasks()
+    """Delete a specific task by ID."""
+    tasks = read_tasks()
     for i, t in enumerate(tasks):
         if t["id"] == task_id:
             deleted = tasks.pop(i)

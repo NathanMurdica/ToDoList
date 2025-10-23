@@ -28,7 +28,7 @@
       <tbody>
         <tr v-for="task in tasks" :key="task.id">
           <td>{{ task.name }}</td>
-          <td>{{ task.due_date }}</td>
+          <td>{{ formatDate(task.due_date) }}</td>
           <td>
             <span v-if="task.isOverdue()" class="text-danger">Overdue</span>
             <span v-else>{{ task.isDueIn() || "--"}} Days</span>
@@ -56,113 +56,102 @@
   </div>
 </template>
   
-  <script setup>
-  import { ref, onMounted, watch } from "vue";
-  import Task from "../utils/task";
-  import formatDate from "../utils/format";
-  import { onBeforeRouteUpdate } from 'vue-router';
+<script setup>
+import { ref, onMounted, onActivated } from "vue";
+import Task from "../utils/task";
+import formatDate from "../utils/format.js";
 
-  const newTask = ref("");
-  const tasks = ref([]);
+const newTask = ref("");
+const tasks = ref([]);
 
-  // Load tasks from localStorage or test data on mount
-  onMounted(() => {
-    getTasks();
-  });
+// Load tasks when the page loads or when returning to it
+onMounted(getTasks);
+onActivated(getTasks);
 
-  onBeforeRouteUpdate((to, from) => {
-    getTasks();
-  });
+function priorityClass(priority) {
+  switch (priority?.toLowerCase()) {
+    case "high": return "bg-danger";
+    case "medium": return "bg-warning text-dark";
+    case "low": return "bg-success";
+    default: return "bg-secondary";
+  }
+}
 
-  function priorityClass(priority) {
-      switch (priority.toLowerCase()) {
-        case 'high': return 'bg-danger'
-        case 'medium': return 'bg-warning text-dark'
-        case 'low': return 'bg-success'
-        default: return 'bg-secondary'
-      }
-  };
+function taskStatus(status) {
+  switch (status) {
+    case Task.STATUS.TODO: return "To Do";
+    case Task.STATUS.IN_PROGRESS: return "In Progress";
+    case Task.STATUS.DONE: return "Done";
+    default: return "Unknown";
+  }
+}
 
-  function taskStatus(status) {
-      switch (status) {
-        case Task.STATUS.TODO: return 'To Do'
-        case Task.STATUS.IN_PROGRESS: return 'In Progress'
-        case Task.STATUS.DONE: return 'Done'
-        default: return 'Unknown'
-      }
-  };
+// ---- Core methods ----
 
-  // get tasks
-  const getTasks = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/task_list");
-      const data = await response.json();
-      tasks.value =data.map(task => Task.fromJSON(task));
-      localStorage.setItem("tasks", JSON.stringify(tasks.value.map(t => t.toJSON())));
-    } catch (error) {
-      console.error('getTasks error', error);
-    }
-  };
+// Fetch tasks from backend
+async function getTasks() {
+  try {
+    const response = await fetch("http://localhost:8000/task_list");
+    const data = await response.json();
+    tasks.value = data.map(task => Task.fromJSON(task));
+    localStorage.setItem("tasks", JSON.stringify(tasks.value.map(t => t.toJSON())));
+  } catch (error) {
+    console.error("getTasks error:", error);
+  }
+}
 
-  // Add a new task
-  const addTask = async () => {
-    const name = newTask.value.trim();
-    if (!name) return;
-    const newTaskObj = new Task({ name });
-    tasks.value.push(newTaskObj);
-    
-    // send payload without id so backend assigns a numeric id
-    const payload = newTaskObj.toJSON()
-    delete payload.id
-    fetch("http://localhost:8000/task_list", {
+// Add a new task
+async function addTask() {
+  const name = newTask.value.trim();
+  if (!name) return;
+
+  const newTaskObj = new Task({ name });
+  const payload = newTaskObj.toJSON();
+  delete payload.id; // let backend assign ID
+
+  try {
+    await fetch("http://localhost:8000/task_list", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
-    }).catch(err => console.error('addTask POST error', err))
-
+    });
     newTask.value = "";
     await getTasks();
-  };
+  } catch (err) {
+    console.error("addTask POST error:", err);
+  }
+}
 
-  // Remove a task
-  const removeTask = async (task_id) => {
+// Delete task by ID
+async function removeTask(task_id) {
   try {
-    // Remove locally
-    tasks.value = tasks.value.filter(t => t.id !== task_id);
-
-    // Remove from backend
-    await fetch(`http://localhost:8000/task_list/${task_id}`, {
-      method: "DELETE"
-    });
-
+    await fetch(`http://localhost:8000/task_list/${task_id}`, { method: "DELETE" });
     await getTasks();
   } catch (err) {
-    console.error('removeTask DELETE error', err);
+    console.error("removeTask DELETE error:", err);
   }
-};
+}
 
+// Mark as complete
+async function completeTask(task_id) {
+  const t = tasks.value.find(t => t.id === task_id);
+  if (!t) return;
 
-  const completeTask = (task_id) => {
-    const t = tasks.value[task_id]
-    if (!t) return
-    t.setStatus(Task.STATUS.DONE);
+  t.setStatus(Task.STATUS.DONE);
+  const payload = t.toJSON();
+  delete payload.id;
 
-    // remove task from backend before adding updated version
-    removeTask(t.id);
-    console.log('completeTask', t, task_id)
-
-    // send updated task to backend then remove locally
-    const payload = t.toJSON()
-    delete payload.id
-    fetch("http://localhost:8000/task_list", {
+  try {
+    // Update the backend in two clear steps, not overlapping
+    await fetch(`http://localhost:8000/task_list/${task_id}`, { method: "DELETE" });
+    await fetch("http://localhost:8000/task_list", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
-    }).catch(err => console.error('completeTask POST error', err))
-
-    // remove from local list after posting
-    tasks.value.splice(task_id, 1)
-
-    //getTasks(); // refresh tasks to get assigned id from backend
-  };
-  </script>
+    });
+    await getTasks();
+  } catch (err) {
+    console.error("completeTask POST error:", err);
+  }
+}
+</script>

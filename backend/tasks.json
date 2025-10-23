@@ -1,23 +1,23 @@
 [
     {
         "id": 0,
-        "name": "Buy milk",
-        "description": "",
-        "priority": "medium",
-        "status": "in_progress",
-        "due_date": "",
-        "created_at": "2025-10-23T14:25:03.372Z",
-        "updated_at": "2025-10-23T14:25:03.372Z"
+        "name": "a",
+        "description": "a",
+        "priority": "high",
+        "status": "todo",
+        "due_date": "2025-10-25",
+        "created_at": "2025-10-23T14:43:16.089Z",
+        "updated_at": "2025-10-23T14:43:21.765Z"
     },
     {
         "id": 2,
-        "name": "Buy milk",
+        "name": "New Task",
         "description": "",
         "priority": "medium",
-        "status": "in_progress",
+        "status": "todo",
         "due_date": "",
-        "created_at": "2025-10-23T14:25:29.438Z",
-        "updated_at": "2025-10-23T14:25:29.439Z"
+        "created_at": "2025-10-23T14:47:27.756Z",
+        "updated_at": "2025-10-23T14:47:27.756Z"
     },
     {
         "id": 3,
@@ -26,7 +26,7 @@
         "priority": "low",
         "status": "todo",
         "due_date": "",
-        "created_at": "2025-10-23T14:25:38.141Z",
-        "updated_at": "2025-10-23T14:25:38.145Z"
+        "created_at": "2025-10-23T14:50:49.597Z",
+        "updated_at": "2025-10-23T14:50:49.603Z"
     }
 ]
