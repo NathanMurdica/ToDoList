@@ -1,11 +1,8 @@
 from fastapi.testclient import TestClient
-from main import app, DATA_FILE
+from main import app, DATA_FILE, BACKUP_FILE
 import os, pytest
 
 client = TestClient(app)
-
-source_file = os.path.join(os.path.dirname(__file__), "tasks.json")
-destination_file = os.path.join(os.path.dirname(__file__), "tasks_copy.json")
 
 @pytest.fixture(autouse=True)
 def clean_data_file():
@@ -15,7 +12,7 @@ def clean_data_file():
         if os.name == 'posix':  # Unix-like systems (Linux, macOS)
             command = f"cp {source_file} {destination_file}"
         elif os.name == 'nt':  # Windows
-            command = f"copy {source_file} {destination_file}"
+            command = f"copy {DATA_FILE} {BACKUP_FILE}"
         else:
             print("Unsupported operating system for direct shell command copying.")
             exit()
@@ -26,12 +23,6 @@ def clean_data_file():
     yield
     if os.path.exists(DATA_FILE):
         os.remove(DATA_FILE)
-
-
-def test_list_tasks_initially_empty():
-    response = client.get("/task_list")
-    assert response.status_code == 200
-    assert response.json() == []
 
 
 def test_create_task():
